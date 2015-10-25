@@ -1,0 +1,12 @@
+Django
+django-dotenv
+django-filter
+djangorestframework
+Markdown
+psycopg2
+python-dateutil
+pytz
+six
+StringGenerator
+uWSGI
+wheel

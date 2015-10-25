@@ -1,0 +1,16 @@
+---
+
+- name: Create the virtualenv
+  shell: >
+    virtualenv {{ virtualenv_path }} --no-site-packages
+  args:
+    remote_user: ubuntu
+    creates: "{{ virtualenv_path }}"
+    
+  
+- name: set ownership of virtualenv directory
+  shell: >
+    chown {{ project_user }}:{{ project_user }} {{ virtualenv_path }} -R
+
+
+

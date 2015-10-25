@@ -1,0 +1,7 @@
+---
+
+celery_user: root
+celery_group: root
+celery_application_name: celeryd
+celerycam_application_name: celerycam
+celery_scripts_dir: /opt/celery/scripts/

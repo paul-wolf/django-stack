@@ -1,0 +1,57 @@
+---
+
+- name: Update all distro packages to latest
+  apt: upgrade=dist
+  
+- name: Ensure bash, OpenSSl, and libssl are the latest versions
+  apt: name={{ item }} update_cache={{ update_apt_cache }} state=latest
+  with_items:
+    - bash
+    - openssl
+    - libssl-dev
+    - libssl-doc
+  tags: packages
+
+- name: Install base packages
+  apt: name={{ item }} update_cache={{ update_apt_cache }} force=yes state=installed
+  with_items:
+    - build-essential
+    - ntp
+    - htop
+    - iotop
+    - iftop
+    - git
+    - python-dev
+    - python-pip
+    - python-pycurl
+    - supervisor
+    - libpq-dev
+    - python-setuptools
+    - nginx
+    - emacs24
+    - multitail
+    - python-passlib
+    - sysstat
+    - python-virtualenv
+  tags: packages
+
+- name: Install virtualenv
+  pip: name=virtualenv
+  tags: packages
+
+- name: make sure we can sudo as admin group
+  lineinfile: dest=/etc/sudoers state=present regexp='^%ADMIN ALL\=' line='%ADMIN ALL=(ALL) NOPASSWD:ALL' validate='visudo -cf %s'
+   
+- name: copy .emacs configuration file to home directory
+  copy: src=.emacs dest="{{project_user_home}}/" owner="{{project_user}}" group="{{project_user}}" 
+
+- name: create project directory
+  file: path={{project_path}} state=directory owner={{project_user}} group={{project_user}}
+  
+- name: modify local .bashrc to cd to our base dir whenever we login as {{project_user}}
+  lineinfile: dest="{{project_user_home}}/.bashrc" line="cd {{application_path}}" state=present owner="{{project_user}}" group="{{project_user}}"
+  
+- name: modify vagrant user .bashrc to immediately su to ubuntu
+  lineinfile: dest="/home/vagrant/.bashrc" line="sudo su - {{project_user}}" state=present owner=vagrant group=vagrant
+  tags:
+  - vagrant

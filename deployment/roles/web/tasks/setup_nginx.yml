@@ -1,0 +1,33 @@
+---
+
+- name: Install Nginx
+  apt: name=nginx update_cache={{ update_apt_cache }} state=installed
+  tags: packages
+
+- name: make sure cert directory exists etc/nginx/ssl/certs/
+  file: path=/etc/nginx/ssl/certs state=directory
+
+- name: Copy cert files
+  copy: src={{item}} dest=/etc/nginx/ssl/certs/ 
+  with_fileglob:
+    - etc/nginx/ssl/certs/*
+  tags: cert
+
+- name: Set permissions for cert dir
+  command: >
+    sudo chown -R root:root /etc/nginx/ssl
+  tags: cert
+
+- name: Set file modes on certs
+  command: >
+    sudo chmod -R 600 /etc/nginx/ssl
+  tags: cert
+
+- name: Create the Nginx configuration file
+  template: src=mysite.conf.j2
+            dest=/etc/nginx/sites-enabled/{{ application_name }}
+            backup=yes
+  notify: reload nginx
+
+- name: Ensure Nginx service is started
+  service: name=nginx state=started enabled=yes

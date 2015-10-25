@@ -1,0 +1,20 @@
+---
+
+- name: Install uwsgi in virtual env {{ virtualenv_path }}
+  pip: virtualenv={{ virtualenv_path }} name="uwsgi"
+
+- name: Create the Supervisor config file
+  template: src=uwsgi.conf.j2
+            dest=/etc/supervisor/conf.d/{{ application_name }}.conf
+            backup=yes
+
+- name: Create the uwsgi ini file
+  template: src=uwsgi.ini.j2
+            dest={{ application_path }}/system/uwsgi/uwsgi.ini 
+            backup=yes
+
+- name: Re-read the Supervisor config files
+  supervisorctl: name=uwsgi state=present
+
+- name: Restart Supervisor
+  supervisorctl: name=uwsgi state=restarted

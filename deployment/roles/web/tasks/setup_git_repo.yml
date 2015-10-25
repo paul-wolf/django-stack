@@ -1,0 +1,49 @@
+---
+
+- name: Create ssh directory if it does not exist
+  file: path="{{ project_user_home }}/.ssh" owner="{{ project_user }}" group="{{ project_user }}" mode=0700 state=directory
+  
+- name: copy deploy key
+  copy: src=ssh/id_rsa dest="{{project_user_home}}/.ssh/" owner="{{project_user}}" group="{{project_user}}" mode=0600
+
+- name: copy deploy key
+  copy: src=ssh/id_rsa.pub dest="{{project_user_home}}/.ssh/" owner="{{project_user}}" group="{{project_user}}" mode=0600
+
+- name: copy known hosts file
+  copy: src=ssh/known_hosts dest="{{project_user_home}}/.ssh/" owner="{{project_user}}" group="{{project_user}}" mode=0644
+
+# at this point, it seems that root owns a couple sub directories
+- name: user needs to own the whole path
+  command: chown {{project_user}}:{{project_user}} {{project_path}} -R
+
+- name: Setup the Git repo
+  git: repo={{ git_repo }} dest={{ application_path }} accept_hostkey=yes key_file={{project_user_home}}/.ssh/id_rsa 
+  when: setup_git_repo
+  tags: git
+
+- name: Create the environment variable file
+  template: src=environment_vars.j2
+            dest="{{ application_path }}/.env"
+            backup=yes
+
+
+  
+#- name: Copy 
+#  command: cp {{project_path}}/config/{{project_name}}_sample.env {{project_user_home}}/{{project_name}}.env
+
+#- name: user owns env file
+#  command: chown ubuntu:ubuntu {{project_user_home}}/{{project_name}}.env
+  
+- name: Set ownership of project directory
+  shell: >
+    chown {{ project_user }}:{{ project_user }} {{ project_path }} -R
+
+
+- name: Create the application log folder
+  file: path={{ application_log_dir }}
+        owner={{ project_user }}
+        group={{ project_user }}
+        mode=0770
+        state=directory
+
+    

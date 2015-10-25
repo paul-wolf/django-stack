@@ -1,0 +1,43 @@
+---
+
+- name: Install Supervisor
+  apt: name=supervisor update_cache={{ update_apt_cache }} state=installed
+  tags:
+    - celery
+
+- name: Ensure supervisor service is started
+  service: name=supervisor state=started enabled=yes
+  tags:
+    - celery
+
+- name: Link to
+  file: src={{ application_dir }}/config/celeryd.conf dest=/etc/supervisor/conf.d/celeryd.conf owner=root group=root state=link
+
+- name: Create the celery log folder
+  file: path=/var/log/celery
+        owner={{ celery_user }}
+        group={{ celery_group }}
+        mode=0774
+        state=directory
+  tags:
+    - celery
+
+
+- name: Create the {{ celery_application_name }} log file
+  file: path=/var/log/celery/{{ celery_application_name }}.log
+        owner={{ celery_user }}
+        group={{ celery_group }}
+        mode=0774
+        state=touch
+  tags:
+    - celery
+
+- name: Re-read the Supervisor config files
+  command: supervisorctl reread
+  tags:
+    - celery
+
+- name: Update Supervisor to add the app in the process group
+  command: supervisorctl update
+  tags:
+    - celery

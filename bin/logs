@@ -1,0 +1,4 @@
+sudo multitail -l "sudo tail -f /var/prj/mysite/log/error.log"  -l "sudo tail -f /var/prj/mysite/log/access.log" \
+     -l "tail -f /var/prj/mysite/log/uwsgi.log" \
+     -l "tail -f /var/prj/mysite/log/mysite.log" 
+

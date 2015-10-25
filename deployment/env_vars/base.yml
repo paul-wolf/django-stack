@@ -1,0 +1,30 @@
+---
+
+git_repo: git@github.com:XXXX/mysite.git
+project_name: mysite
+application_name: mysite
+
+# Application settings.
+project_user: "ubuntu"
+project_user_home: "/home/{{ project_user }}"
+virtualenv_name: "venv"
+project_path: "/var/prj"
+application_path: "{{ project_path }}/{{ application_name }}"
+virtualenv_path: "{{ application_path }}/{{ virtualenv_name }}"
+application_log_dir: "{{ application_path }}/log"
+requirements_file: "{{ application_path }}/requirements.txt"
+
+
+
+
+
+#ssl_dest_dir: /etc/ssl
+
+#ssl_crt: |
+#asdf
+
+# This key is for demo purposes only. If you're committing your keys
+# to your git repo, you'd probably want it encrypted. You can use
+# ansible-vault to do this.
+#ssl_key: |
+#asdf

@@ -1,0 +1,135 @@
+#!/usr/bin/env bash
+
+venv="/var/prj/mysite/venv"
+
+if [ ! -d $VIRTUAL_ENV ]; then
+   echo "ERROR: Virtual environment does not exist: $venv"
+   exit
+fi
+
+if [ ! -f .env ]; then
+   echo "ERROR: environment is not set via .env!"
+   exit
+fi
+
+if [ ! -f ~/.pgpass ]; then
+   echo "ERROR: ~/.pgpass file is not present!"
+#   exit
+fi
+
+project_owner=`stat -c %U /var/prj`
+if [ "$project_owner" != "ubuntu" ]; then
+    echo "ERROR: project directory must be owned by ubuntu"
+    exit
+fi
+
+if [ "$VIRTUAL_ENV" != "$venv" ]; then
+   echo "VIRTUAL ENVIRONMENT NOT ACTIVATED!"
+   echo "Activating just for this script"
+   source /var/prj/mysite/venv/bin/activate
+   #exit
+fi
+
+if [  $# -eq 0 ]; then
+    echo "commands:"
+    echo "   reload: reload supervisorctl config files"
+    echo "   super: load supervisorctl"
+    echo "   web: restart uwsgi and nginx"
+    # echo "   tasks: restart celery"
+    # echo "   rabbit: restart rabbitMQ"
+    echo "   logs: show a menu of log files to view"
+fi
+
+if [ "$1" == "create_database" ]; then
+      echo "Creating database..."
+    sudo -u postgres createdb -O yewser yew
+    echo "Execute Django migrate"
+    #$venv/bin/python manage.py migrate
+    echo "Done!"
+fi
+
+if [ "$1" == "super" ]; then
+    sudo supervisorctl
+fi
+
+if [ "$1" == "all" ] || [  "$1" == "pip" ]; then
+    echo "install modules"
+    pip --quiet --disable-pip-version-check install -r requirements.txt
+fi
+
+# if [ "$1" == "all" ] || [  "$1" == "migrate" ]; then
+#     echo "migrating models"
+#     ./manage.py migrate --verbosity=1
+# fi
+
+if [ "$1" == "web" ] || [  "$1" == "all" ]; then
+    if [ "$2" == "stop" ]; then
+        sudo supervisorctl stop uwsgi;
+    else
+        sudo supervisorctl restart uwsgi;
+    fi
+fi
+
+if [ "$1" == "nginx" ] || [  "$1" == "all" ]; then
+    if [ "$2" == "stop" ]; then
+    sudo service nginx stop;
+    else
+        sudo service nginx restart;
+    fi
+fi
+
+# if [ "$1" == "tasks" ] || [  "$1" == "all" ] || [  "$1" == "celery" ]; then
+#     if [ "$2" == "stop" ]; then
+#         sudo supervisorctl stop celeryd
+#     else
+#         sudo supervisorctl restart celeryd
+#     fi
+# fi
+
+# if [ "$1" == "rabbit" ] || [  "$1" == "all" ]; then
+#     if [ "$2" == "stop" ]; then
+#         sudo service rabbitmq-server stop
+#     else
+#         sudo service rabbitmq-server restart
+#     fi
+# fi
+
+
+if [ "$1" == "logs" ] || [  "$1" == "--logs" ]; then
+    echo "1) application log"
+    echo "2) nginx error log"
+    echo "3) uwsgi log"
+#    echo "2) celery task log"
+#    echo "3) celery server log"
+#    echo "4) rabbitmq log"
+
+
+    echo "type a number for the log you want, followed by [ENTER]:"
+    read i
+    if [ "$i" == "1" ]; then
+        tail -f log/mysite.log
+    # elif [ "$i" == "2" ]; then
+    #     tail -f log/celery_tasks.log
+    # elif [ "$i" == "3" ]; then
+    #     sudo tail -f /var/log/supervisor/celeryd.log
+    # elif [ "$i" == "4" ]; then
+    # sudo tail -f /var/log/rabbitmq/rabbit@vagrant-ubuntu-trusty-64.log
+    elif [ "$i" == "2" ]; then
+        sudo tail -f /var/log/nginx/error.log
+    elif [ "$i" == "3" ]; then
+        tail -f log/uwsgi.log
+    else
+        echo "choice not recognised"
+    fi
+    exit;
+fi
+
+if [ "$1" == "status" ] || [  "$1" == "--status" ] || [  "$1" == "all" ]; then
+    # echo "celery service: "
+    # celery -A yew status
+    echo "uwsgi: "
+    sudo supervisorctl status uwsgi
+    echo "nginx: "
+    sudo service nginx status
+    sudo nginx -t
+fi

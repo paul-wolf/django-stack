@@ -1,0 +1,17 @@
+---
+
+- name: Install npm
+  apt: name=npm state=present
+
+- name: Install gulp
+  npm: name=gulp-cli global=yes
+
+- name: Link node symbolically
+  file: src=/usr/bin/nodejs dest=/usr/bin/node state=link
+
+- name: Run npm install in guinness subdirectory
+  command: npm install
+  args:
+    chdir: "{{project_user_home}}/guinness"
+
+

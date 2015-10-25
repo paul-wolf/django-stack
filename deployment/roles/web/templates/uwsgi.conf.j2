@@ -1,0 +1,9 @@
+[program:uwsgi]
+command={{ virtualenv_path }}/bin/uwsgi --ini {{ application_path }}/system/uwsgi/uwsgi.ini
+directory={{ application_path }}
+user=ubuntu
+autostart=true
+autorestart=true
+redirect_stderr=true
+stopsignal=QUIT
+stopasgroup=true

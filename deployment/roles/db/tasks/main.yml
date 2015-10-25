@@ -1,0 +1,84 @@
+---
+- name: Add pgdg apt key
+  apt_key: id=ACCC4CF8 url=http://apt.postgresql.org/pub/repos/apt/ACCC4CF8.asc
+
+- name: Add pgdg apt repository
+  apt_repository:  repo="deb http://apt.postgresql.org/pub/repos/apt/ trusty-pgdg main"
+        
+# - name:             sources.list.d for pgdg
+#   template:         dest=/etc/apt/sources.list.d/pgdg.list src=pgdg.list owner=root group=root mode=0644
+#   register:         pgdg_sources
+
+# - name:             preferences.d for pgdg
+#   copy:             dest=/etc/apt/preferences.d/pgdg.pref src=pgdg.pref owner=root group=root mode=0644
+
+# - name:             update apt cache
+#   apt:              update_cache=yes
+#   when:             pgdg_sources|changed
+
+- name:             install postgresql packages from pgdg
+  apt:              name={{ item }} state=present
+  with_items:
+    - postgresql-contrib-9.4
+    - postgresql-server-dev-9.4
+    - postgresql-9.4
+    - postgresql-client-9.4
+    
+- name: Install PostgreSQL
+  apt: name={{ item }} update_cache={{ update_apt_cache }} state=installed
+  with_items:
+    - postgresql-contrib-9.4
+    - postgresql-server-dev-9.4
+    - postgresql-9.4-postgis-2.1
+    - postgresql-client-9.4
+    - libpq-dev
+    - python-psycopg2
+    - fp-utils
+    - ptop                    
+  tags: packages
+
+- name: Update postgres config
+  template: src="{{ item }}.j2" dest=/etc/postgresql/9.4/main/{{ item }}
+  with_items:
+    - pg_hba.conf
+  notify:
+    restart postgresql
+
+
+- name: Setup .pgpass file
+  lineinfile: dest="{{project_user_home}}/.pgpass" line="*:*:{{db_name}}:{{db_user}}:{{db_password}}" create=yes state=present
+
+- name: Set perms on .pgpass
+  command: chmod 0600 {{project_user_home}}/.pgpass
+
+- name: Set ownership on .pgpass
+  command: chown {{project_user}}:{{project_user}} {{project_user_home}}/.pgpass
+
+- name: Ensure the PostgreSQL service is running
+  service: name=postgresql state=started enabled=yes
+
+- name: Ensure user has access to the database
+  sudo_user: postgres
+  postgresql_user: name="{{ db_user }}"
+                   password="{{ db_password }}"
+                   state=present
+                   role_attr_flags=CREATEDB,SUPERUSER
+
+- name: Ensure database is created
+  sudo_user: postgres
+  postgresql_db: name="{{ db_name }}"
+                 owner="{{ db_user }}"
+                 encoding='UTF-8'
+                 lc_collate='en_US.UTF-8'
+                 lc_ctype='en_US.UTF-8'
+                 template='template0'
+                 state=present
+  notify: restart postgresql
+
+# - name: copy pg_hba.conf file to provide our user with access
+#   copy: src=pg_hba.conf dest="/etc/postgresql/9.4/main/" owner="postgres" group="postgres" mode=0640
+#   notify: restart postgresql
+                   
+#- name: create extension postgis
+#  action: command sudo -u postgres psql -U postgres -d {{db_name}} -c 'CREATE EXTENSION IF NOT EXISTS postgis;CREAT#E EXTENSION IF NOT EXISTS postgis_topology;'
+
