@@ -26,9 +26,10 @@ Note we use HTTPS. The DRF browsable api is at:
 <https://localhost:7081/api/>
 
 This project has a test app called 'msg' that contains a test model
-that can be access via token authorisation with Django REST Framework
-using a ModelViewSet. The setup will create a user called 'admin',
-password 'admin'. It will create a DRF token for this user as well. 
+that can be accessed via token authorisation with Django REST
+Framework using a ModelViewSet. The setup will create a user called
+'admin', password 'admin'. It will create a DRF token for this user as
+well.
 
 Other details of the installation:
 
@@ -183,15 +184,6 @@ ansible-playbook -i hosts -l <remote_host> development.yml --skip-tags=vagrant
 Where you need to use the correct host name. The `hosts` file must
 contain the specified host and any credentials you may require.
 
-Known Issues
-------------
-
-The Django superuser might not be created properly. You might need to do this yourself manually:
-
-```
-source venv/bin/activate
-./manage.py createsuperuser
-```
 
 Acknowledgements
 ----------------
