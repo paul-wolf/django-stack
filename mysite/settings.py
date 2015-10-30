@@ -13,7 +13,7 @@ dotenv.read_dotenv(os.path.join('.','.env'))
 DEPLOYMENT = os.environ.get('DEPLOYMENT','production')
 SITE_URL = os.environ.get('SITE_URL','https://localhost')
 BASE_DIR = os.environ.get('BASE_DIR',os.path.dirname(os.path.realpath(__file__)))
-APPLICATION_TITLE = os.environ.get('APPLICATION_TITLE',"Bitposter PoC")
+APPLICATION_TITLE = os.environ.get('APPLICATION_TITLE',"Test Application")
 BRAND = ''
 
 DB_NAME = os.environ.get('DB_NAME','mysite')
