@@ -104,7 +104,7 @@ class FooViewSet(viewsets.ModelViewSet):
 
     def create(self, request):
         """You do not need this. Just an example of overriding it."""
-        serializer = TagSerializer(data=request.data)
+        serializer = FooSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response({'status': 'ok'})
